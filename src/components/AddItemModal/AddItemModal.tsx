@@ -2,6 +2,7 @@ import { Button, Icon, Input } from "@rneui/themed";
 import React, { FC, useEffect, useState } from "react";
 import { Modal, View, StyleSheet, Text } from "react-native";
 import { addCustomer, addCredit } from "../../hooks/database";
+import { Picker } from "@react-native-picker/picker";
 
 type AddItemModalProps = {
   onClose: (shouldUpdate?: boolean) => void;
@@ -12,6 +13,7 @@ type AddItemModalProps = {
     setValue: (text: string) => void;
   }>;
   type: string;
+  customers?: Array<{ id: number; name: string }>;
 };
 
 const AddItemModal: FC<AddItemModalProps> = ({
@@ -19,37 +21,57 @@ const AddItemModal: FC<AddItemModalProps> = ({
   visible,
   fields,
   type,
+  customers = [],
 }) => {
+  const [selectedCustomer, setSelectedCustomer] = useState<number | null>(null);
+
+  const formatCurrency = (value: string): string => {
+    const cleanedValue = value.replace(/\D/g, ""); // Elimina cualquier caracter que no sea número
+    return cleanedValue.replace(/\B(?=(\d{3})+(?!\d))/g, "."); // Añade los puntos de miles
+  };
+
+  const getCurrentDate = (): string => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0"); // Mes con dos dígitos
+    const day = String(today.getDate()).padStart(2, "0"); // Día con dos dígitos
+    return `${year}-${month}-${day}`;
+  };
+
   const handleAddPress = () => {
     const params = fields.map((field) => field.value);
 
-    switch (type) {
-      case "credits":
-        addCredit(
-          params[0], // customer
-          params[1], // date
-          parseFloat(params[2]), // price
-          params[3], // description
-          parseFloat(params[4]), // initialFee
-          () => {
-            console.log("Crédito añadido con éxito");
-            onClose(true);
-          }
-        );
-        break;
+    if (type === "credits") {
+      // Verificar si se ha seleccionado un cliente
+      if (!selectedCustomer) {
+        alert("Selecciona un cliente.");
+        return;
+      }
 
-      case "customers":
-        addCustomer(
-          params[0], // name
-          params[1], // phoneNumber
-          params[2], // address
-          () => {
-            console.log("Cliente añadido con éxito");
-            onClose(true);
-            fields.forEach((field) => field.setValue(""));
-          }
-        );
-        break;
+      // Añadir el crédito y pasar el ID del cliente seleccionado
+      addCredit(
+        selectedCustomer, // cliente seleccionado
+        params[0], // date
+        parseFloat(params[1]), // price
+        params[2], // description
+        parseFloat(params[3]), // initialFee
+        () => {
+          console.log("Crédito añadido con éxito");
+          onClose(true);
+          fields.forEach((field) => field.setValue(""));
+        }
+      );
+    } else {
+      addCustomer(
+        params[0], // name
+        params[1], // phoneNumber
+        params[2], // address
+        () => {
+          console.log("Cliente añadido con éxito");
+          onClose(true);
+          fields.forEach((field) => field.setValue(""));
+        }
+      );
     }
   };
 
@@ -69,10 +91,49 @@ const AddItemModal: FC<AddItemModalProps> = ({
               type="clear"
             />
           </View>
+
+          {type === "credits" && (
+            <Picker
+              selectedValue={selectedCustomer}
+              onValueChange={(value) => setSelectedCustomer(value)}
+            >
+              <Picker.Item label="Selecciona un cliente" value={null} />
+              {customers.map((customer) => (
+                <Picker.Item
+                  key={customer.id}
+                  label={customer.name}
+                  value={customer.id}
+                />
+              ))}
+            </Picker>
+          )}
+
           {fields.map((field, index) => (
             <View style={styles.formItem} key={index}>
               <View style={styles.inputContainer}>
-                <Input value={field.value} onChangeText={field.setValue} />
+                <Input
+                  value={
+                    field.label === "Valor" || field.label === "C/Inicial"
+                      ? formatCurrency(field.value)
+                      : field.label === "Fecha" && !field.value
+                      ? getCurrentDate() // Asigna la fecha actual si está vacía
+                      : field.value
+                  }
+                  onChangeText={(text) =>
+                    field.setValue(
+                      field.label === "Valor" || field.label === "C/Inicial"
+                        ? formatCurrency(text)
+                        : text
+                    )
+                  }
+                  keyboardType={
+                    field.label === "Valor" ||
+                    field.label === "C/Inicial" ||
+                    field.label === "Telefono"
+                      ? "numeric"
+                      : "default"
+                  }
+                />
               </View>
               <View style={styles.legendContainer}>
                 <Text style={styles.legend}>{field.label}</Text>
@@ -86,7 +147,10 @@ const AddItemModal: FC<AddItemModalProps> = ({
               color={"#8A4C0B"}
               onPress={handleAddPress}
               radius={"lg"}
-              disabled={fields.some((field) => field.value.trim() === "")}
+              disabled={
+                fields.some((field) => field.value.trim() === "") ||
+                (type === "credits" && !selectedCustomer)
+              }
             />
           </View>
         </View>

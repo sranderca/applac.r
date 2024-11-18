@@ -1,10 +1,9 @@
 import { Button, Icon } from "@rneui/themed";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, Text, StyleSheet, Alert } from "react-native";
 import AddItemModal from "../AddItemModal";
-import { createTables } from "../../hooks/database";
 
-const AddItem = ({ text, fields, type, onAddSucces }) => {
+const AddItem = ({ text, fields, type, customers, onAddSucces }) => {
   const [visible, setIsVisible] = useState<boolean>(false);
 
   const handleModalClose = (shouldUpdate?: boolean) => {
@@ -33,6 +32,7 @@ const AddItem = ({ text, fields, type, onAddSucces }) => {
         onClose={handleModalClose}
         fields={fields}
         type={type}
+        customers={customers}
       />
     </View>
   );

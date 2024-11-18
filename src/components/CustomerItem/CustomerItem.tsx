@@ -1,7 +1,5 @@
-// CustomerList.js
 import React, { FC } from "react";
 import { View, Text, FlatList, StyleSheet } from "react-native";
-
 import { Button, Icon } from "@rneui/themed";
 
 type Customer = {
@@ -11,12 +9,12 @@ type Customer = {
   address: string;
 };
 
-type CustomerListProps = {
+type CustomerItemProps = {
   customers: Customer[];
   onDelete: (id: number) => void;
 };
 
-const CustomerList: FC<CustomerListProps> = ({ customers, onDelete }) => {
+const CustomerItem: FC<CustomerItemProps> = ({ customers, onDelete }) => {
   const renderItem = ({ item }: { item: Customer }) => (
     <View style={styles.container}>
       <View key={item.id} style={styles.leftContainer}>
@@ -62,7 +60,7 @@ const styles = StyleSheet.create({
     color: "#8A4C0B",
   },
   info: {
-    fontSize: 14,
+    fontSize: 16,
     color: "#555",
   },
   emptyText: {
@@ -81,4 +79,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default CustomerList;
+export default CustomerItem;

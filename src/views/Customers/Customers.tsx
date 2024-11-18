@@ -3,9 +3,9 @@ import { View, StyleSheet } from "react-native";
 import Header from "../../components/Header";
 import AddItem from "../../components/AddItem";
 import SearchItem from "../../components/SearchItem";
-import CustomerList from "../../components/CustomersList";
 import { getCustomers } from "../../hooks/database";
 import { deleteCustomer } from "../../hooks/database";
+import CustomerItem from "../../components/CustomerItem";
 
 const Customers = () => {
   const [name, setName] = useState("");
@@ -55,7 +55,7 @@ const Customers = () => {
         onAddSucces={loadCustomers}
       />
       <SearchItem onSearch={handleSearch} />
-      <CustomerList
+      <CustomerItem
         customers={filteredCustomers}
         onDelete={handleDeleteCustomer}
       />
