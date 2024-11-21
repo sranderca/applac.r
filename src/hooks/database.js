@@ -44,6 +44,15 @@ export const createTables = () => {
         FOREIGN KEY (creditId) REFERENCES credits(id)
       );`
     );
+
+    tx.executeSql(
+      `CREATE TABLE IF NOT EXISTS sales (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        description TEXT,
+        date TEXT,
+        price REAL
+      );`
+    );
   });
 };
 
@@ -102,6 +111,18 @@ export const addPayment = (creditId, date, amount, note, successCallback) => {
   });
 };
 
+//funcion para añadir ventas
+export const addSales = (description, date, price, successCallback) => {
+  db.transaction((tx) => {
+    tx.executeSql(
+      "INSERT INTO sales (description, date, price) VALUES (?,?,?)",
+      [description, date, price],
+      (txObj, resultSet) => successCallback(),
+      (txObj, error) => console.error("Error al añadir la venta:", error)
+    );
+  });
+};
+
 // Función para obtener clientes
 export const getCustomers = (successCallback) => {
   db.transaction((tx) => {
@@ -120,7 +141,7 @@ export const getCredits = (successCallback) => {
     tx.executeSql(
       `SELECT credits.*, customers.name AS customerName 
        FROM credits 
-       JOIN customers ON credits.customerId = customers.id`, 
+       JOIN customers ON credits.customerId = customers.id`,
       [], // No necesitas parámetros en este caso
       (txObj, { rows: { _array } }) => successCallback(_array), // Devuelve los datos al callback
       (txObj, error) => {
@@ -151,8 +172,19 @@ export const getPaymentsByCreditId = (creditId, setPayments) => {
   });
 };
 
+// Función para obtener clientes
+export const getSales = (successCallback) => {
+  db.transaction((tx) => {
+    tx.executeSql(
+      "SELECT * FROM sales",
+      null,
+      (txObj, { rows: { _array } }) => successCallback(_array),
+      (txObj, error) => console.error("Error al obtener las ventas:", error)
+    );
+  });
+};
 
-//funcion para actulizar el saldo de los creditos 
+//funcion para actulizar el saldo de los creditos
 export const updateCreditBalance = (creditId, newBalance, successCallback) => {
   const db = getDBConnection();
   db.transaction((tx) => {
@@ -206,6 +238,18 @@ export const deleteCredit = (creditId, successCallback) => {
         console.error("Error al eliminar los abonos asociados:", error);
         return false; // Manejo del error
       }
+    );
+  });
+};
+
+//funcion para eliminar un cliente
+export const deleteSales = (id, successCallback) => {
+  db.transaction((tx) => {
+    tx.executeSql(
+      "DELETE FROM sales WHERE id = ?",
+      [id],
+      (txObj, resultSet) => successCallback(),
+      (txObj, error) => console.error("Error al eliminar el cliente:", error)
     );
   });
 };

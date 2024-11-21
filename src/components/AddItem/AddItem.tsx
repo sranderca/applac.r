@@ -1,9 +1,27 @@
 import { Button, Icon } from "@rneui/themed";
-import React, { useState } from "react";
+import React, { FC, useState } from "react";
 import { View, Text, StyleSheet, Alert } from "react-native";
 import AddItemModal from "../AddItemModal";
 
-const AddItem = ({ text, fields, type, customers, onAddSucces }) => {
+type AddItemProps = {
+  text: string;
+  fields: {
+    label: string;
+    value: string;
+    setValue: React.Dispatch<React.SetStateAction<string>>;
+  }[];
+  type: string;
+  customers?: any;
+  onAddSucces: () => void;
+};
+
+const AddItem: FC<AddItemProps> = ({
+  text,
+  fields,
+  type,
+  customers,
+  onAddSucces,
+}) => {
   const [visible, setIsVisible] = useState<boolean>(false);
 
   const handleModalClose = (shouldUpdate?: boolean) => {

@@ -20,7 +20,7 @@ const Credits = () => {
   const loadCredits = () => {
     getCredits((data) => {
       setCredits(data);
-      setFilteredCredits(data); 
+      setFilteredCredits(data);
     });
   };
 
