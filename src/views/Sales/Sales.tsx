@@ -5,7 +5,6 @@ import AddItem from "../../components/AddItem";
 import { deleteSales, getSales } from "../../hooks/database";
 import SalesItem from "../../components/SalesItem";
 
-
 const Sales = () => {
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");

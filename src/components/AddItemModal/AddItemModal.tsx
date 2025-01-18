@@ -1,7 +1,12 @@
 import { Button, Icon, Input } from "@rneui/themed";
 import React, { FC, useEffect, useState } from "react";
 import { Modal, View, StyleSheet, Text } from "react-native";
-import { addCustomer, addCredit, addSales } from "../../hooks/database";
+import {
+  addCustomer,
+  addCredit,
+  addSales,
+  addExpenses,
+} from "../../hooks/database";
 import { Picker } from "@react-native-picker/picker";
 
 type AddItemModalProps = {
@@ -68,6 +73,17 @@ const AddItemModal: FC<AddItemModalProps> = ({
         params[2], //price
         () => {
           console.log("venta añadida con éxito");
+          onClose(true);
+          fields.forEach((field) => field.setValue(""));
+        }
+      );
+    } else if (type === "expenses") {
+      addExpenses(
+        params[0], //description
+        params[1], //date
+        params[2], //price
+        () => {
+          console.log("gasto añadido con éxito");
           onClose(true);
           fields.forEach((field) => field.setValue(""));
         }

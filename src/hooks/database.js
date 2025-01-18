@@ -45,8 +45,19 @@ export const createTables = () => {
       );`
     );
 
+    //tabla de ventas
     tx.executeSql(
       `CREATE TABLE IF NOT EXISTS sales (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        description TEXT,
+        date TEXT,
+        price REAL
+      );`
+    );
+
+    //tabal de gastos
+    tx.executeSql(
+      `CREATE TABLE IF NOT EXISTS expenses (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         description TEXT,
         date TEXT,
@@ -123,7 +134,19 @@ export const addSales = (description, date, price, successCallback) => {
   });
 };
 
-// Función para obtener clientes
+//funcion para añadir egresos
+export const addExpenses = (description, date, price, successCallback) => {
+  db.transaction((tx) => {
+    tx.executeSql(
+      "INSERT INTO expenses (description, date, price) VALUES (?,?,?)",
+      [description, date, price],
+      (txObj, resultSet) => successCallback(),
+      (txObj, error) => console.error("Error al añadir el gasto:", error)
+    );
+  });
+};
+
+//función para obtener clientes
 export const getCustomers = (successCallback) => {
   db.transaction((tx) => {
     tx.executeSql(
@@ -172,7 +195,7 @@ export const getPaymentsByCreditId = (creditId, setPayments) => {
   });
 };
 
-// Función para obtener clientes
+//función para obtener las ventas
 export const getSales = (successCallback) => {
   db.transaction((tx) => {
     tx.executeSql(
@@ -180,6 +203,18 @@ export const getSales = (successCallback) => {
       null,
       (txObj, { rows: { _array } }) => successCallback(_array),
       (txObj, error) => console.error("Error al obtener las ventas:", error)
+    );
+  });
+};
+
+//función para obtener gastos
+export const getExpenses = (successCallback) => {
+  db.transaction((tx) => {
+    tx.executeSql(
+      "SELECT * FROM expenses",
+      null,
+      (txObj, { rows: { _array } }) => successCallback(_array),
+      (txObj, error) => console.error("Error al obtener los gastos:", error)
     );
   });
 };
@@ -242,7 +277,7 @@ export const deleteCredit = (creditId, successCallback) => {
   });
 };
 
-//funcion para eliminar un cliente
+//funcion para eliminar una venta
 export const deleteSales = (id, successCallback) => {
   db.transaction((tx) => {
     tx.executeSql(
@@ -250,6 +285,18 @@ export const deleteSales = (id, successCallback) => {
       [id],
       (txObj, resultSet) => successCallback(),
       (txObj, error) => console.error("Error al eliminar el cliente:", error)
+    );
+  });
+};
+
+//funcion para eliminar un gasto
+export const deleteExpenses = (id, successCallback) => {
+  db.transaction((tx) => {
+    tx.executeSql(
+      "DELETE FROM expenses WHERE id = ?",
+      [id],
+      (txObj, resultSet) => successCallback(),
+      (txObj, error) => console.error("Error al eliminar el gasto:", error)
     );
   });
 };

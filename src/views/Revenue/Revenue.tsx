@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import { View, Text, StyleSheet } from "react-native";
+import { View, StyleSheet } from "react-native";
 import Header from "../../components/Header";
 import AddItem from "../../components/AddItem";
-import SearchItem from "../../components/SearchItem";
 
 const Revenue = () => {
   const [description, setDescription] = useState("");
@@ -19,7 +18,6 @@ const Revenue = () => {
     <View style={styles.container}>
       <Header />
       <AddItem text="Añadir Ingreso" fields={fields} type="revenue" />
-      <SearchItem />
     </View>
   );
 };

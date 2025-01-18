@@ -39,7 +39,7 @@ const SalesItem: FC<SalesItemProps> = ({ sales, onDelete }) => {
       renderItem={renderItem}
       keyExtractor={(item) => item.id.toString()}
       ListEmptyComponent={
-        <Text style={styles.emptyText}>No hay ventas para mostrar</Text>
+        <Text style={styles.emptyText}>No items para mostrar</Text>
       }
     />
   );
@@ -53,7 +53,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 12,
     marginBottom: 7,
     flexDirection: "row",
-    
   },
   name: {
     fontSize: 20,
