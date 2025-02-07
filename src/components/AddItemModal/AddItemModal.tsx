@@ -6,6 +6,7 @@ import {
   addCredit,
   addSales,
   addExpenses,
+  addRevenues,
 } from "../../hooks/database";
 import { Picker } from "@react-native-picker/picker";
 
@@ -84,6 +85,17 @@ const AddItemModal: FC<AddItemModalProps> = ({
         params[2], //price
         () => {
           console.log("gasto añadido con éxito");
+          onClose(true);
+          fields.forEach((field) => field.setValue(""));
+        }
+      );
+    } else if (type === "revenues") {
+      addRevenues(
+        params[0], //description
+        params[1], //date
+        params[2], //price
+        () => {
+          console.log("Ingreso añadido con éxito");
           onClose(true);
           fields.forEach((field) => field.setValue(""));
         }

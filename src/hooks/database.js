@@ -64,6 +64,16 @@ export const createTables = () => {
         price REAL
       );`
     );
+
+    //tabal de ingresos
+    tx.executeSql(
+      `CREATE TABLE IF NOT EXISTS revenues (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        description TEXT,
+        date TEXT,
+        price REAL
+      );`
+    );
   });
 };
 
@@ -146,6 +156,19 @@ export const addExpenses = (description, date, price, successCallback) => {
   });
 };
 
+//funcion para añadir ingresos
+export const addRevenues = (description, date, price, successCallback) => {
+  db.transaction((tx) => {
+    tx.executeSql(
+      "INSERT INTO revenues (description, date, price) VALUES (?,?,?)",
+      [description, date, price],
+      (txObj, resultSet) => successCallback(),
+      (txObj, error) => console.error("Error al añadir el ingreso:", error)
+    );
+  });
+};
+
+
 //función para obtener clientes
 export const getCustomers = (successCallback) => {
   db.transaction((tx) => {
@@ -218,6 +241,19 @@ export const getExpenses = (successCallback) => {
     );
   });
 };
+
+//función para obtener ingresos
+export const getRevenues = (successCallback) => {
+  db.transaction((tx) => {
+    tx.executeSql(
+      "SELECT * FROM revenues",
+      null,
+      (txObj, { rows: { _array } }) => successCallback(_array),
+      (txObj, error) => console.error("Error al obtener los ingresos:", error)
+    );
+  });
+};
+
 
 //funcion para actulizar el saldo de los creditos
 export const updateCreditBalance = (creditId, newBalance, successCallback) => {
@@ -297,6 +333,18 @@ export const deleteExpenses = (id, successCallback) => {
       [id],
       (txObj, resultSet) => successCallback(),
       (txObj, error) => console.error("Error al eliminar el gasto:", error)
+    );
+  });
+};
+
+//funcion para eliminar un ingreso
+export const deleteRevenues = (id, successCallback) => {
+  db.transaction((tx) => {
+    tx.executeSql(
+      "DELETE FROM revenues WHERE id = ?",
+      [id],
+      (txObj, resultSet) => successCallback(),
+      (txObj, error) => console.error("Error al eliminar el ingreso:", error)
     );
   });
 };
