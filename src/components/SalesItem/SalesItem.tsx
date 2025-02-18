@@ -20,7 +20,7 @@ const SalesItem: FC<SalesItemProps> = ({ sales, onDelete }) => {
       <View key={item.id} style={styles.leftContainer}>
         <Text style={styles.name}>{item.description}</Text>
         <Text style={styles.info}>Fecha: {item.date}</Text>
-        <Text style={styles.info}>Valor: {item.price.toFixed(3)}</Text>
+        <Text style={styles.info}>Valor: ${item.price.toFixed(3)}</Text>
       </View>
       <View style={styles.rightContainer}>
         <Button

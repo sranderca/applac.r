@@ -1,9 +1,9 @@
 import * as SQLite from "expo-sqlite/legacy";
 
-const db = SQLite.openDatabase("newDatabseLacr.db");
+const db = SQLite.openDatabase("newDatabaseLacr.db");
 
 export const getDBConnection = () => {
-  return SQLite.openDatabase("newDatabseLacr.db");
+  return SQLite.openDatabase("newDatabaseLacr.db");
 };
 
 // Función para crear tablas
@@ -29,6 +29,7 @@ export const createTables = () => {
         description TEXT,
         initialFee REAL,
         balance REAL,
+        status TEXT DEFAULT 'activo',
         FOREIGN KEY (customerId) REFERENCES customers(id) ON DELETE CASCADE
       );`
     );
@@ -168,7 +169,6 @@ export const addRevenues = (description, date, price, successCallback) => {
   });
 };
 
-
 //función para obtener clientes
 export const getCustomers = (successCallback) => {
   db.transaction((tx) => {
@@ -253,7 +253,6 @@ export const getRevenues = (successCallback) => {
     );
   });
 };
-
 
 //funcion para actulizar el saldo de los creditos
 export const updateCreditBalance = (creditId, newBalance, successCallback) => {
@@ -345,6 +344,67 @@ export const deleteRevenues = (id, successCallback) => {
       [id],
       (txObj, resultSet) => successCallback(),
       (txObj, error) => console.error("Error al eliminar el ingreso:", error)
+    );
+  });
+};
+
+export const getFilteredMovements = (filter, callback) => {
+  let startDate = "";
+  let endDate = new Date();
+  endDate.setHours(0, 0, 0, 0); // Elimina la hora para comparar solo la fecha
+  endDate = endDate.toISOString().split("T")[0];
+
+  if (filter === "today") {
+    startDate = endDate;
+  } else if (filter === "yesterday") {
+    let yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    startDate = yesterday.toISOString().split("T")[0];
+    endDate = startDate;
+  } else if (filter === "last3days") {
+    let threeDaysAgo = new Date();
+    threeDaysAgo.setDate(threeDaysAgo.getDate() - 3);
+    startDate = threeDaysAgo.toISOString().split("T")[0];
+  } else if (filter === "last7days") {
+    let sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    startDate = sevenDaysAgo.toISOString().split("T")[0];
+  } else if (filter === "last30days") {
+    let thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    startDate = thirtyDaysAgo.toISOString().split("T")[0];
+  }
+
+  db.transaction((tx) => {
+    tx.executeSql(
+      `SELECT 'Crédito' AS type, DATE(date) AS date, description, price AS amount FROM credits WHERE DATE(date) BETWEEN ? AND ? 
+        UNION ALL 
+      SELECT 'Abono' AS type, DATE(date) AS date, note AS description, amount FROM payments WHERE DATE(date) BETWEEN ? AND ? 
+        UNION ALL 
+      SELECT 'Venta' AS type, DATE(date) AS date, description, price AS amount FROM sales WHERE DATE(date) BETWEEN ? AND ? 
+        UNION ALL 
+      SELECT 'Egreso' AS type, DATE(date) AS date, description, price AS amount FROM expenses WHERE DATE(date) BETWEEN ? AND ?
+        UNION ALL
+      SELECT 'Ingreso' AS type, DATE(date) AS date, description, price AS amount FROM revenues WHERE DATE(date) BETWEEN ? AND ? 
+        ORDER BY date DESC;
+`,
+      [
+        startDate,
+        endDate,
+        startDate,
+        endDate,
+        startDate,
+        endDate,
+        startDate,
+        endDate,
+        startDate,
+        endDate,
+      ],
+      (_, { rows }) => {
+        console.log("Movimientos obtenidos:", rows._array);
+        callback(rows._array);
+      },
+      (_, error) => console.error("Error al obtener movimientos:", error)
     );
   });
 };
