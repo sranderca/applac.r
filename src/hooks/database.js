@@ -78,7 +78,7 @@ export const createTables = () => {
   });
 };
 
-// Función para añadir clientes
+//función para añadir clientes
 export const addCustomer = (name, phoneNumber, address, successCallback) => {
   db.transaction((tx) => {
     tx.executeSql(
@@ -90,7 +90,7 @@ export const addCustomer = (name, phoneNumber, address, successCallback) => {
   });
 };
 
-// Función para añadir créditos
+//función para añadir créditos
 export const addCredit = (
   customerId,
   date,
@@ -103,7 +103,7 @@ export const addCredit = (
 
   db.transaction((tx) => {
     tx.executeSql(
-      "INSERT INTO credits (customerId, date, price, description, initialFee, balance) VALUES (?, ?, ?, ?, ?,  ?)",
+      "INSERT INTO credits (customerId, date, price, description, initialFee, balance) VALUES (?, ?, ?, ?, ?, ?)",
       [customerId, date, price, description, initialFee, balance],
       (txObj, resultSet) => successCallback(),
       (txObj, error) => console.error("Error al añadir crédito:", error)
@@ -269,6 +269,22 @@ export const updateCreditBalance = (creditId, newBalance, successCallback) => {
   });
 };
 
+//funcion para actualizar el estado de los creditos
+export const updateCreditStatus = (creditId, status) => {
+  db.transaction((tx) => {
+    tx.executeSql(
+      "UPDATE credits SET status = ? WHERE id = ?",
+      [status, creditId],
+      (_, result) => {
+        console.log(`crédito ${creditId} actualizado a ${status}`);
+        console.log("Filas afectadas:", result.rowsAffected);
+      },
+      (_, error) =>
+        console.error("Error al actualizar estado del crédito:", error)
+    );
+  });
+};
+
 //funcion para eliminar un cliente
 export const deleteCustomer = (id, successCallback) => {
   db.transaction((tx) => {
@@ -413,7 +429,9 @@ db.transaction((tx) => {
   tx.executeSql(
     "PRAGMA table_info(credits);",
     [],
-    (txObj, { rows }) => console.log("Credits table schema:", rows._array),
-    (txObj, error) => console.error("Error retrieving table schema:", error)
+    (_, { rows }) =>
+      console.log("Estructura de la tabla credits:", rows._array),
+    (_, error) =>
+      console.error("Error al obtener estructura de credits:", error)
   );
 });

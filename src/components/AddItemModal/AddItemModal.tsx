@@ -114,6 +114,18 @@ const AddItemModal: FC<AddItemModalProps> = ({
     }
   };
 
+  useEffect(() => {
+    if (visible) {
+      fields.forEach((field) => {
+        if (field.label === "Fecha" && !field.value) {
+          field.setValue(getCurrentDate());
+        }
+      });
+
+      setSelectedCustomer(null);
+    }
+  }, [visible]);
+
   return (
     <Modal
       visible={visible}

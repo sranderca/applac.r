@@ -5,6 +5,7 @@ import {
   deleteCredit,
   getPaymentsByCreditId,
   updateCreditBalance,
+  updateCreditStatus,
 } from "../../hooks/database";
 import { Icon, Button, Input } from "@rneui/themed";
 
@@ -48,6 +49,12 @@ const CreditDetailModal = ({ visible, onClose, credit }) => {
         // Actualizar la información del crédito
         credit.balance = newBalance;
         setIsAddPaymentVisible(false);
+
+        // Actualizar el estado del credito
+        if (newBalance <= 0) {
+          console.log("El saldo llegó a 0, actualizando estado a 'inactivo'");
+          updateCreditStatus(credit.id, "inactivo");
+        }
       });
     });
   };
