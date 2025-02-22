@@ -285,6 +285,50 @@ export const updateCreditStatus = (creditId, status) => {
   });
 };
 
+//funcion para traer los datos clave del resumen mensual
+export const getMonthlySummary = (month, year, callback) => {
+  const startDate = `${year}-${month.toString().padStart(2, "0")}-01`;
+  const endDate = `${year}-${month.toString().padStart(2, "0")}-31`;
+
+  db.transaction((tx) => {
+    tx.executeSql(
+      `
+      SELECT 
+        -- Ingresos totales: cuota inicial + abonos + ventas + ingresos
+        (
+          (SELECT IFNULL(SUM(initialFee), 0) FROM credits WHERE date BETWEEN ? AND ?) +
+          (SELECT IFNULL(SUM(amount), 0) FROM payments WHERE date BETWEEN ? AND ?) +
+          (SELECT IFNULL(SUM(price), 0) FROM sales WHERE date BETWEEN ? AND ?) +
+          (SELECT IFNULL(SUM(price), 0) FROM revenues WHERE date BETWEEN ? AND ?)
+        ) AS totalIncome,
+
+        -- Egresos totales
+        (SELECT IFNULL(SUM(price), 0) FROM expenses WHERE date BETWEEN ? AND ?) AS totalExpenses,
+
+        -- Créditos activos
+        (SELECT COUNT(*) FROM credits WHERE status = 'activo') AS activeCredits,
+
+        -- Saldo pendiente por cobrar
+        (SELECT IFNULL(SUM(balance), 0) FROM credits WHERE status = 'activo') AS pendingBalance
+      `,
+      [
+        startDate,
+        endDate, // Cuota inicial
+        startDate,
+        endDate, // Abonos
+        startDate,
+        endDate, // Ventas
+        startDate,
+        endDate, // Ingresos
+        startDate,
+        endDate, // Egresos
+      ],
+      (_, { rows }) => callback(rows._array[0]),
+      (_, error) => console.error("Error al obtener resumen mensual:", error)
+    );
+  });
+};
+
 //funcion para eliminar un cliente
 export const deleteCustomer = (id, successCallback) => {
   db.transaction((tx) => {
