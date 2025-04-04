@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, Modal, StyleSheet, FlatList, Alert } from "react-native";
 import {
+  addCreditAddition,
   addPayment,
   deleteCredit,
+  getCreditAdditions,
   getPaymentsByCreditId,
   updateCreditBalance,
   updateCreditStatus,
@@ -19,15 +21,24 @@ const CreditDetailModal = ({ visible, onClose, credit }) => {
   };
 
   const [isAddPaymentVisible, setIsAddPaymentVisible] = useState(false);
+  const [isEditCreditVisible, setIsEditCreditVisible] = useState(false);
   const [payments, setPayments] = useState([]);
   const [amount, setAmount] = useState("");
   const [note, setNote] = useState("");
   const [date, setDate] = useState(getCurrentDate());
+  const [newBalance, setNewBalance] = useState("");
+  const [newDescription, setNewDescription] = useState("");
+  const [newDate, setNewDate] = useState(getCurrentDate());
+  const [additions, setAdditions] = useState([]);
 
   // Traer los abonos
   useEffect(() => {
     if (credit) {
       getPaymentsByCreditId(credit.id, setPayments);
+      getCreditAdditions(credit.id, (data) => {
+        console.log("Productos agregados:", data);
+        setAdditions(data);
+      });
     }
   }, [credit]);
 
@@ -79,9 +90,54 @@ const CreditDetailModal = ({ visible, onClose, credit }) => {
     );
   };
 
+  const handleUpdateCredit = () => {
+    // ✅ Asegurar que newBalance es un número válido
+    const cleanBalance = parseFloat(
+      newBalance.replace(/\./g, "").replace(",", ".")
+    );
+
+    addCreditAddition(
+      credit.id,
+      newDescription,
+      newDate,
+      parseFloat(newBalance),
+      () => {
+        getCreditAdditions(credit.id, setAdditions);
+        setNewDescription("");
+        setNewDate("");
+        setNewBalance("");
+        setIsEditCreditVisible(false);
+      }
+    );
+  };
+
   const formatCurrency = (value: string): string => {
     const cleanedValue = value.replace(/\D/g, ""); // Elimina cualquier caracter que no sea número
     return cleanedValue.replace(/\B(?=(\d{3})+(?!\d))/g, "."); // Añade los puntos de miles
+  };
+
+  const renderItem = ({ item }) => {
+    if (item.type === "additionsTitle") {
+      return <Text style={styles.sectionTitle}>Productos Agregados</Text>;
+    } else if (item.type === "paymentsTitle") {
+      return <Text style={styles.sectionTitle}>Abonos Realizados</Text>;
+    } else if ("note" in item) {
+      return (
+        <View style={styles.paymentItem}>
+          <Text style={styles.legend}>Fecha: {item.date}</Text>
+          <Text style={styles.legend}>Valor: $ {item.amount.toFixed(3)}</Text>
+          <Text style={styles.legend}>Nota: {item.note}</Text>
+        </View>
+      );
+    } else {
+      return (
+        <View style={styles.additionItem}>
+          <Text style={styles.legend}>Fecha: {item.date}</Text>
+          <Text style={styles.legend}>Valor: $ {item.amount.toFixed(3)}</Text>
+          <Text style={styles.legend}>Descripción: {item.description}</Text>
+        </View>
+      );
+    }
   };
 
   return (
@@ -112,20 +168,17 @@ const CreditDetailModal = ({ visible, onClose, credit }) => {
           <Text style={styles.legend}>
             Saldo: $ {credit.balance.toFixed(3)}
           </Text>
-          <Text style={styles.subTitle}>Abonos</Text>
           <FlatList
-            data={payments}
-            renderItem={({ item }) => (
-              <View style={styles.paymentItem}>
-                <Text style={styles.legend}>Fecha: {item.date}</Text>
-                <Text style={styles.legend}>
-                  Valor: $ {item.amount.toFixed(3)}
-                </Text>
-                <Text style={styles.legend}>Nota: {item.note}</Text>
-              </View>
-            )}
-            keyExtractor={(item) => item.id.toString()}
+            data={[
+              { type: "additionsTitle" },
+              ...additions,
+              { type: "paymentsTitle" },
+              ...payments,
+            ]}
+            renderItem={renderItem}
+            keyExtractor={(_, index) => index.toString()}
           />
+
           <View style={styles.containerButtons}>
             <View style={styles.deleteContainer}>
               <Button
@@ -133,6 +186,14 @@ const CreditDetailModal = ({ visible, onClose, credit }) => {
                 radius={"lg"}
                 color={"#8A4C0B"}
                 onPress={handleDeleteCredit}
+              />
+            </View>
+            <View>
+              <Button
+                icon={<Icon name="edit" color={"#fff"} />}
+                radius={"lg"}
+                color={"#8A4C0B"}
+                onPress={() => setIsEditCreditVisible(true)}
               />
             </View>
             <View style={styles.addContainer}>
@@ -144,6 +205,75 @@ const CreditDetailModal = ({ visible, onClose, credit }) => {
               />
             </View>
           </View>
+          <Modal
+            visible={isEditCreditVisible}
+            onRequestClose={() => setIsEditCreditVisible(false)}
+            transparent
+            animationType="slide"
+          >
+            <View style={styles.containerModal}>
+              <View style={styles.contentModal}>
+                <View style={styles.headerModal}>
+                  <View style={styles.leftContainer}>
+                    <Text style={styles.title}>Añadir Producto</Text>
+                  </View>
+                  <View style={styles.rightContainer}>
+                    <Button
+                      icon={<Icon name="close" size={28} color={"#8A4C0B"} />}
+                      onPress={() => setIsEditCreditVisible(false)}
+                      type="clear"
+                    />
+                  </View>
+                </View>
+                <View style={styles.formItem}>
+                  <View style={styles.inputContainer}>
+                    <Input
+                      value={newDate}
+                      onChangeText={(text) => setNewDate(formatCurrency(text))} // Formatea el valor ingresado
+                      keyboardType="numeric"
+                    />
+                  </View>
+                  <View style={styles.legendContainer}>
+                    <Text style={styles.legend}>Fecha</Text>
+                  </View>
+                </View>
+                <View style={styles.formItem}>
+                  <View style={styles.inputContainer}>
+                    <Input
+                      value={newBalance}
+                      onChangeText={(text) =>
+                        setNewBalance(formatCurrency(text))
+                      } // Formatea el valor ingresado
+                      keyboardType="numeric"
+                    />
+                  </View>
+                  <View style={styles.legendContainer}>
+                    <Text style={styles.legend}>Valor</Text>
+                  </View>
+                </View>
+                <View style={styles.formItem}>
+                  <View style={styles.inputContainer}>
+                    <Input
+                      value={newDescription}
+                      onChangeText={(text) => {
+                        console.log("Texto ingresado:", text); // Ver qué texto se está procesando
+                        setNewDescription(text);
+                      }}
+                    />
+                  </View>
+                  <View style={styles.legendContainer}>
+                    <Text style={styles.legend}>Descripcion</Text>
+                  </View>
+                </View>
+                <Button
+                  title="Agregar"
+                  onPress={handleUpdateCredit}
+                  radius={10}
+                  color={"#8A4C0B"}
+                />
+              </View>
+            </View>
+          </Modal>
           <Modal
             visible={isAddPaymentVisible}
             onRequestClose={() => setIsAddPaymentVisible(false)}
@@ -308,6 +438,19 @@ const styles = StyleSheet.create({
   },
   button: {
     borderRadius: 20,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    marginVertical: 8,
+    textAlign: "center",
+    color: "#8A4C0B",
+  },
+  additionItem: {
+    backgroundColor: "#f1f8e9",
+    padding: 10,
+    marginVertical: 5,
+    borderRadius: 5,
   },
 });
 

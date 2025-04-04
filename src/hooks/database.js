@@ -9,7 +9,7 @@ export const getDBConnection = () => {
 // Función para crear tablas
 export const createTables = () => {
   db.transaction((tx) => {
-    // Tabla de clientes
+    //tabla de clientes
     tx.executeSql(
       `CREATE TABLE IF NOT EXISTS customers (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -19,7 +19,7 @@ export const createTables = () => {
       );`
     );
 
-    // Tabla de créditos con relación a clientes
+    //tabla de créditos con relación a clientes
     tx.executeSql(
       `CREATE TABLE IF NOT EXISTS credits (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -34,7 +34,7 @@ export const createTables = () => {
       );`
     );
 
-    //Tabla de abonos
+    //tabla de abonos
     tx.executeSql(
       `CREATE TABLE IF NOT EXISTS payments (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -74,6 +74,18 @@ export const createTables = () => {
         date TEXT,
         price REAL
       );`
+    );
+
+    //tabla de creditos añadidos
+    tx.executeSql(
+      `CREATE TABLE IF NOT EXISTS credit_additions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        credit_id INTEGER,
+        description TEXT,
+        date TEXT,
+        amount REAL,
+        FOREIGN KEY (credit_id) REFERENCES credits (id)
+    );`
     );
   });
 };
@@ -169,6 +181,47 @@ export const addRevenues = (description, date, price, successCallback) => {
   });
 };
 
+//funcion para agregar nuevos creditos
+export const addCreditAddition = (
+  creditId,
+  description,
+  date,
+  amount,
+  successCallback
+) => {
+  db.transaction((tx) => {
+    // Insertar el nuevo producto en credit_additions
+    tx.executeSql(
+      "INSERT INTO credit_additions (credit_id, description, date, amount) VALUES (?, ?, ?, ?)",
+      [creditId, description, date, amount],
+      (_, result) => {
+        console.log("Producto agregado con éxito");
+
+        // Ahora actualizar el saldo del crédito
+        tx.executeSql(
+          "UPDATE credits SET balance = balance + ? WHERE id = ?",
+          [amount, creditId],
+          (_, updateResult) => {
+            console.log("Saldo actualizado con éxito");
+
+            // Llamar el callback si existe
+            if (successCallback) successCallback();
+          },
+          (_, updateError) => {
+            console.error(
+              "Error actualizando el saldo del crédito:",
+              updateError
+            );
+          }
+        );
+      },
+      (_, error) => {
+        console.error("Error al agregar producto al crédito:", error);
+      }
+    );
+  });
+};
+
 //función para obtener clientes
 export const getCustomers = (successCallback) => {
   db.transaction((tx) => {
@@ -254,6 +307,21 @@ export const getRevenues = (successCallback) => {
   });
 };
 
+//funcion para obtener los nuevos creditos añadidos
+export const getCreditAdditions = (creditId, setAdditions) => {
+  db.transaction((tx) => {
+    tx.executeSql(
+      "SELECT * FROM credit_additions WHERE credit_id = ?",
+      [creditId],
+      (_, { rows }) => {
+        setAdditions(rows._array);
+      },
+      (_, error) =>
+        console.error("Error al obtener productos del crédito:", error)
+    );
+  });
+};
+
 //funcion para actulizar el saldo de los creditos
 export const updateCreditBalance = (creditId, newBalance, successCallback) => {
   const db = getDBConnection();
@@ -281,6 +349,29 @@ export const updateCreditStatus = (creditId, status) => {
       },
       (_, error) =>
         console.error("Error al actualizar estado del crédito:", error)
+    );
+  });
+};
+
+//funcion para actualizar un credito
+export const updateCredit = (
+  id,
+  newBalance,
+  newDescription,
+  successCallback
+) => {
+  db.transaction((tx) => {
+    tx.executeSql(
+      "UPDATE credits SET balance = ?, description = ? WHERE id = ?",
+      [newBalance, newDescription, id],
+      () => {
+        console.log("Crédito actualizado correctamente");
+        successCallback();
+      },
+      (_, error) => {
+        console.error("Error actualizando crédito: ", error);
+        return false;
+      }
     );
   });
 };
@@ -408,6 +499,7 @@ export const deleteRevenues = (id, successCallback) => {
   });
 };
 
+//funcion para obtener los movimientos
 export const getFilteredMovements = (filter, callback) => {
   let startDate = "";
   let endDate = new Date();

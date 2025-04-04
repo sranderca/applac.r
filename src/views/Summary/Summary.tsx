@@ -2,11 +2,15 @@ import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Modal } from "react-native";
 import Header from "../../components/Header";
 import { getMonthlySummary } from "../../hooks/database";
+import { BarChart } from "react-native-chart-kit";
+import { Dimensions } from "react-native";
 
 const filters = [
   { label: "Ultimo Mes", value: "lastMonth" },
   { label: "Anterior Mes", value: "prevMonth" },
 ];
+
+const screenWidth = Dimensions.get("window").width;
 
 const Summary = () => {
   const [totalRevenue, setTotalRevenue] = useState(0);
@@ -14,7 +18,7 @@ const Summary = () => {
   const [netProfit, setNetProfit] = useState(0);
   const [activeCredits, setActiveCredits] = useState(0);
   const [outBalance, setOutBalance] = useState(0);
-  const [selectedFilter, setSelectedFilter] = useState("Ultimo Mes");
+  const [selectedFilter, setSelectedFilter] = useState("lastMonth");
   const [modalVisible, setModalVisible] = useState(false);
 
   useEffect(() => {
@@ -87,12 +91,39 @@ const Summary = () => {
           </View>
         </Modal>
         <View style={styles.details}>
-          <SummaryRow label="Ingresos Totales" value={totalRevenue} />
-          <SummaryRow label="Egresos Totales" value={totalExpenses} />
-          <SummaryRow label="Ganancia Neta" value={netProfit} />
+          <SummaryRow
+            label="Ingresos Totales        "
+            value={totalRevenue.toFixed(3)}
+          />
+          <SummaryRow
+            label="Egresos Totales"
+            value={totalExpenses.toFixed(3)}
+          />
+          <SummaryRow label="Ganancia Neta" value={netProfit.toFixed(3)} />
           <SummaryRow label="Créditos Activos" value={activeCredits} />
-          <SummaryRow label="Saldo Pendiente" value={outBalance} />
+          <SummaryRow label="Saldo Pendiente" value={outBalance.toFixed(3)} />
         </View>
+
+        <BarChart
+          data={{
+            labels: ["Ingresos", "Egresos"],
+            datasets: [{ data: [totalRevenue, totalExpenses] }],
+          }}
+          width={screenWidth - 40}
+          height={220}
+          yAxisLabel="$"
+          yAxisSuffix="" // 🔥 Agregado para evitar el error
+          chartConfig={{
+            backgroundColor: "#f4f4f4",
+            backgroundGradientFrom: "#f4f4f4",
+            backgroundGradientTo: "#f4f4f4",
+            decimalPlaces: 0,
+            color: (opacity = 1) => `rgba(0, 0, 255, ${opacity})`,
+            labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+            barPercentage: 0.6,
+          }}
+          style={{ marginVertical: 10, borderRadius: 10 }}
+        />
       </View>
     </View>
   );
@@ -168,7 +199,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 8,
   },
-  summaryLabel: { fontSize: 16, fontWeight: "bold" },
+  summaryLabel: { fontSize: 16, fontWeight: "bold", color: "#8A4C0B" },
   summaryValue: { fontSize: 16 },
 });
 

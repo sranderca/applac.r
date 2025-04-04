@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "applac.r",
-    "slug": "applac.r",
+    "name": "applacr",
+    "slug": "applacr",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon-cielo.png",
@@ -16,12 +16,19 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/icon-cielo.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.sranderca.applacr"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "29cdd288-6468-4245-abdc-d97169dc4dc6"
+      }
+    },
+    "owner": "sranderca"
   }
 }
