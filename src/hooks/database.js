@@ -389,12 +389,15 @@ export const getMonthlySummary = (month, year, callback) => {
         (
           (SELECT IFNULL(SUM(initialFee), 0) FROM credits WHERE date BETWEEN ? AND ?) +
           (SELECT IFNULL(SUM(amount), 0) FROM payments WHERE date BETWEEN ? AND ?) +
-          (SELECT IFNULL(SUM(price), 0) FROM sales WHERE date BETWEEN ? AND ?) +
-          (SELECT IFNULL(SUM(price), 0) FROM revenues WHERE date BETWEEN ? AND ?)
+          (SELECT IFNULL(SUM(price), 0) FROM sales WHERE date BETWEEN ? AND ?)
         ) AS totalIncome,
 
-        -- Egresos totales
-        (SELECT IFNULL(SUM(price), 0) FROM expenses WHERE date BETWEEN ? AND ?) AS totalExpenses,
+        -- Egresos totales: egresos - inversion
+        (
+          (SELECT IFNULL(SUM(price), 0) FROM expenses WHERE date BETWEEN ? AND ?) +
+          (SELECT IFNULL(SUM(price), 0) FROM revenues WHERE date BETWEEN ? AND ?)
+        ) AS totalExpenses,
+        
 
         -- Créditos activos
         (SELECT COUNT(*) FROM credits WHERE status = 'activo') AS activeCredits,
@@ -537,7 +540,7 @@ export const getFilteredMovements = (filter, callback) => {
         UNION ALL 
       SELECT 'Egreso' AS type, DATE(date) AS date, description, price AS amount FROM expenses WHERE DATE(date) BETWEEN ? AND ?
         UNION ALL
-      SELECT 'Ingreso' AS type, DATE(date) AS date, description, price AS amount FROM revenues WHERE DATE(date) BETWEEN ? AND ? 
+      SELECT 'Inversion' AS type, DATE(date) AS date, description, price AS amount FROM revenues WHERE DATE(date) BETWEEN ? AND ? 
         ORDER BY date DESC;
 `,
       [

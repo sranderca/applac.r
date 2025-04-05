@@ -37,7 +37,7 @@ const Routes = () => {
         <Drawer.Screen name="Clientes" component={Customers} />
         <Drawer.Screen name="Ventas" component={Sales} />
         <Drawer.Screen name="Egresos" component={Expenses} />
-        <Drawer.Screen name="Ingresos" component={Revenue} />
+        <Drawer.Screen name="Inversion" component={Revenue} />
         <Drawer.Screen name="Resumen" component={Summary} />
       </Drawer.Navigator>
     </NavigationContainer>

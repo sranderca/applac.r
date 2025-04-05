@@ -38,7 +38,7 @@ const Revenue = () => {
     <View style={styles.container}>
       <Header />
       <AddItem
-        text="Añadir Ingreso"
+        text="Añadir Inversion"
         fields={fields}
         type="revenues"
         onAddSucces={loadRevenues}
@@ -49,7 +49,9 @@ const Revenue = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {},
+  container: {
+    flex: 1
+  },
 });
 
 export default Revenue;

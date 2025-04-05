@@ -105,6 +105,7 @@ const CreditDetailModal = ({ visible, onClose, credit }) => {
         setLocalCredit({ ...localCredit, balance: updatedBalance });
 
         getCreditAdditions(credit.id, setAdditions);
+        Alert.alert("Producto agregado");
         setNewDescription("");
         setNewDate("");
         setNewBalance("");

@@ -4,6 +4,8 @@ import Header from "../../components/Header";
 import { getMonthlySummary } from "../../hooks/database";
 import { BarChart } from "react-native-chart-kit";
 import { Dimensions } from "react-native";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
 
 const filters = [
   { label: "Ultimo Mes", value: "lastMonth" },
@@ -24,6 +26,12 @@ const Summary = () => {
   useEffect(() => {
     fetchSummaryData();
   }, [selectedFilter]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchSummaryData();
+    }, [selectedFilter])
+  );
 
   const fetchSummaryData = () => {
     const today = new Date();
@@ -137,7 +145,9 @@ const SummaryRow = ({ label, value }) => (
 );
 
 const styles = StyleSheet.create({
-  container: {},
+  container: {
+    flex: 1,
+  },
   content: {
     padding: 12,
     alignItems: "center",

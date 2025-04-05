@@ -49,7 +49,9 @@ const Expenses = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {},
+  container: {
+    flex: 1
+  },
 });
 
 export default Expenses;

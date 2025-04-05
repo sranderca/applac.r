@@ -9,6 +9,8 @@ import {
 } from "react-native";
 import Header from "../../components/Header";
 import { getFilteredMovements } from "../../hooks/database";
+import { useFocusEffect } from "@react-navigation/native";
+import { useCallback } from "react";
 
 const timeFilters = [
   { label: "Hoy", value: "today" },
@@ -22,6 +24,12 @@ const Home = () => {
   const [selectedFilter, setSelectedFilter] = useState("today");
   const [movements, setMovements] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      getFilteredMovements(selectedFilter, setMovements);
+    }, [selectedFilter])
+  );
 
   useEffect(() => {
     getFilteredMovements(selectedFilter, setMovements);
