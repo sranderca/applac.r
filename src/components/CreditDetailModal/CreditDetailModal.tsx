@@ -30,13 +30,15 @@ const CreditDetailModal = ({ visible, onClose, credit }) => {
   const [newDescription, setNewDescription] = useState("");
   const [newDate, setNewDate] = useState(getCurrentDate());
   const [additions, setAdditions] = useState([]);
+  const [localCredit, setLocalCredit] = useState(credit);
 
   // Traer los abonos
   useEffect(() => {
+    setLocalCredit(credit);
+
     if (credit) {
       getPaymentsByCreditId(credit.id, setPayments);
       getCreditAdditions(credit.id, (data) => {
-        console.log("Productos agregados:", data);
         setAdditions(data);
       });
     }
@@ -48,22 +50,22 @@ const CreditDetailModal = ({ visible, onClose, credit }) => {
 
     addPayment(credit.id, paymentDate, paymentAmount, note, () => {
       // Actualizar el saldo del crédito
-      const newBalance = credit.balance - paymentAmount;
+      const newBalance = localCredit.balance - paymentAmount;
 
       updateCreditBalance(credit.id, newBalance, () => {
         Alert.alert("Abono añadido");
         setAmount("");
         setNote("");
         setDate("");
+
         getPaymentsByCreditId(credit.id, setPayments);
 
-        // Actualizar la información del crédito
-        credit.balance = newBalance;
+        //Actualiza el crédito local
+        setLocalCredit({ ...localCredit, balance: newBalance });
+
         setIsAddPaymentVisible(false);
 
-        // Actualizar el estado del credito
         if (newBalance <= 0) {
-          console.log("El saldo llegó a 0, actualizando estado a 'inactivo'");
           updateCreditStatus(credit.id, "inactivo");
         }
       });
@@ -91,17 +93,17 @@ const CreditDetailModal = ({ visible, onClose, credit }) => {
   };
 
   const handleUpdateCredit = () => {
-    // ✅ Asegurar que newBalance es un número válido
-    const cleanBalance = parseFloat(
-      newBalance.replace(/\./g, "").replace(",", ".")
-    );
-
     addCreditAddition(
       credit.id,
       newDescription,
       newDate,
       parseFloat(newBalance),
       () => {
+        const updatedBalance = localCredit.balance + parseFloat(newBalance);
+
+        //Actualiza el crédito local
+        setLocalCredit({ ...localCredit, balance: updatedBalance });
+
         getCreditAdditions(credit.id, setAdditions);
         setNewDescription("");
         setNewDate("");
@@ -162,11 +164,13 @@ const CreditDetailModal = ({ visible, onClose, credit }) => {
             </View>
           </View>
 
-          <Text style={styles.legend}>Cliente: {credit.customerName}</Text>
-          <Text style={styles.legend}>Fecha: {credit.date}</Text>
-          <Text style={styles.legend}>Valor: $ {credit.price.toFixed(3)}</Text>
+          <Text style={styles.legend}>Cliente: {localCredit.customerName}</Text>
+          <Text style={styles.legend}>Fecha: {localCredit.date}</Text>
           <Text style={styles.legend}>
-            Saldo: $ {credit.balance.toFixed(3)}
+            Valor: $ {localCredit.price.toFixed(3)}
+          </Text>
+          <Text style={styles.legend}>
+            Saldo: $ {localCredit.balance.toFixed(3)}
           </Text>
           <FlatList
             data={[
@@ -256,7 +260,6 @@ const CreditDetailModal = ({ visible, onClose, credit }) => {
                     <Input
                       value={newDescription}
                       onChangeText={(text) => {
-                        console.log("Texto ingresado:", text); // Ver qué texto se está procesando
                         setNewDescription(text);
                       }}
                     />

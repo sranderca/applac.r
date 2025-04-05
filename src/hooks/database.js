@@ -6,7 +6,7 @@ export const getDBConnection = () => {
   return SQLite.openDatabase("newDatabaseLacr.db");
 };
 
-// Función para crear tablas
+//función para crear tablas
 export const createTables = () => {
   db.transaction((tx) => {
     //tabla de clientes
